@@ -1,5 +1,11 @@
 # Changelog
 
+## 22 November 2026: grid minimums capped
+
+- New check C8, found while publishing Young Person 360º: an auto-fit grid with an uncapped minimum can force
+  sideways scrolling when text is enlarged. One rule here (`.forpro .stats-in`) was uncapped; the build now caps
+  every such minimum at the container width.
+
 ## 22 November 2026: published as a public site
 
 - First public release, from release 33 of the private artifact. Renamed from *Earning or learning* to *Earning,

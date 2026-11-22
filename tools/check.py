@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Checks for the public Earning, learning and training site. Each exists because of a rule or a defect.
+"""Checks for the public site built by tools/publish.py. Each exists because of a rule or a defect.
 
 C1  no link to a private Claude artifact (the public page must work for everyone)
 C2  no email address anywhere: contact is by the public form only
@@ -8,6 +8,8 @@ C4  no link carries a tracking parameter
 C5  the colophon QR code carries the public address, and its drawing is that address (redrawn, not stale)
 C6  the standard files are present, and the page links to the contact form
 C7  the page has one main heading in its static markup at most (the welcome screen used to add a second)
+C8  no auto-fit grid has an uncapped minimum width (Young Person 360º overflowed at 320px: a later uncapped
+    minmax(19rem,1fr) overrode the capped one, so the earlier fix, D41, never took effect)
 
 Run:  python3 tools/check.py              all checks
       python3 tools/check.py --negative   break each check on a copy and prove it fails
@@ -26,7 +28,8 @@ FILES = ['index.html', '404.html']
 STANDARD = ['README.md', 'LICENSE', 'CITATION.cff', 'SECURITY.md', 'CHANGELOG.md', 'publiccode.yml', '404.html',
             '.nojekyll', '.github/ISSUE_TEMPLATE/contact.yml', '.github/ISSUE_TEMPLATE/config.yml']
 EMAIL = re.compile(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.(?:uk|com|org|net|gov|io)\b')
-BANNED = re.compile(r'Office of the Chief Data Officer|\bOCDO\b|Data Management Team')
+BANNED = re.compile(r'Office of the Chief Data Officer|\bOCDO\b|Data Management Team', re.IGNORECASE)
+UNCAPPED_GRID = re.compile(r'repeat\(auto-fi[lt],\s*minmax\(\d+(?:\.\d+)?(?:rem|em|px),\s*1fr\)\)')
 TRACKING = re.compile(r'[?&](?:utm_[a-z]+|gad_[a-z]+|gclid|fbclid|mc_eid|_hsenc)=')
 
 
@@ -37,7 +40,7 @@ def problems(root):
     for f, t in texts.items():
         for link in sorted(set(publish.PRIVATE_LINK.findall(t))):
             out.append(f'C1 {f} links to a private artifact: {link}')
-        for e in sorted(set(EMAIL.findall(t))):
+        for e in sorted(set(EMAIL.findall(t)) - getattr(publish, 'ALLOWED_EMAILS', set())):
             out.append(f'C2 {f} shows an email address: {e}')
         if BANNED.search(t):
             out.append(f'C3 {f} names {BANNED.search(t).group(0)}')
@@ -56,11 +59,13 @@ def problems(root):
     for f in STANDARD:
         if not (root / f).exists():
             out.append(f'C6 {f} is missing')
-    if f'<a href="{publish.REPO}/issues/new/choose">Contact</a>' not in page:
+    if not re.search(re.escape(f'<a href="{publish.REPO}/issues/new/choose">') + r'Contact(?: form)?</a>', page):
         out.append('C6 the page footer does not link to the contact form')
     static = re.sub(r'<script\b.*?</script>', '', page, flags=re.DOTALL | re.IGNORECASE)  # templates in scripts build headings at run time
     if len(re.findall(r'<h1[\s>]', static)) > 1:
         out.append('C7 the page has more than one main heading in its markup')
+    if UNCAPPED_GRID.search(page):
+        out.append(f'C8 a grid minimum can force sideways scrolling: {UNCAPPED_GRID.search(page).group(0)}')
     return out
 
 
@@ -72,12 +77,13 @@ def _edit(root, f, fn):
 BREAKS = {
     'C1': lambda r: _edit(r, 'index.html', lambda t: t + '<a href="https://claude.ai/artifact/AbC123">x</a>'),
     'C2': lambda r: _edit(r, '404.html', lambda t: t + '<p>someone@example.org.uk</p>'),
-    'C3': lambda r: _edit(r, 'index.html', lambda t: t + '<p>Office of the Chief Data Officer</p>'),
+    'C3': lambda r: _edit(r, 'index.html', lambda t: t + '<p>run by the Data Management team</p>'),
     'C4': lambda r: _edit(r, 'index.html', lambda t: t + '<a href="https://www.gov.uk/x?utm_source=y">x</a>'),
     'C5': lambda r: _edit(r, 'index.html', lambda t: t.replace('M4,4h1v1h-1z', 'M5,5h1v1h-1z', 1)),
     'C6': lambda r: (Path(r) / 'SECURITY.md').unlink(),
-    'C6b': lambda r: _edit(r, 'index.html', lambda t: t.replace('/issues/new/choose">Contact</a>', '/issues">Contact</a>')),
+    'C6b': lambda r: _edit(r, 'index.html', lambda t: t.replace('/issues/new/choose">Contact', '/issues">Contact')),
     'C7': lambda r: _edit(r, 'index.html', lambda t: t.replace('<body', '<body><h1>a</h1><h1>b</h1>', 1)),
+    'C8': lambda r: _edit(r, 'index.html', lambda t: t.replace('</style>', '.x{grid-template-columns:repeat(auto-fit,minmax(19rem,1fr))}</style>', 1)),
 }
 
 
