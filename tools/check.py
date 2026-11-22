@@ -91,7 +91,7 @@ BREAKS = {
     'C6b': lambda r: _edit(r, 'index.html', lambda t: t.replace('/issues/new/choose">Contact', '/issues">Contact')),
     'C7': lambda r: _edit(r, 'index.html', lambda t: t.replace('<body', '<body><h1>a</h1><h1>b</h1>', 1)),
     'C8': lambda r: _edit(r, 'index.html', lambda t: t.replace('</style>', '.x{grid-template-columns:repeat(auto-fit,minmax(19rem,1fr))}</style>', 1)),
-    'C9': lambda r: _edit(r, '.github/ISSUE_TEMPLATE/contact.yml', lambda t: t.replace('description: "', 'description: x: "', 1)),
+    'C9': lambda r: _edit(r, '.github/ISSUE_TEMPLATE/config.yml', lambda t: t + '\nbroken: [unclosed\n'),
 }
 
 
