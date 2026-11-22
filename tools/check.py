@@ -10,6 +10,7 @@ C6  the standard files are present, and the page links to the contact form
 C7  the page has one main heading in its static markup at most (the welcome screen used to add a second)
 C8  no auto-fit grid has an uncapped minimum width (Young Person 360º overflowed at 320px: a later uncapped
     minmax(19rem,1fr) overrode the capped one, so the earlier fix, D41, never took effect)
+C9  every YAML and CFF file parses (an unquoted "360º: before" in the contact form would have made GitHub drop it)
 
 Run:  python3 tools/check.py              all checks
       python3 tools/check.py --negative   break each check on a copy and prove it fails
@@ -23,6 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
 import publish  # shares the public address and the QR drawing
+import yaml
 
 FILES = ['index.html', '404.html']
 STANDARD = ['README.md', 'LICENSE', 'CITATION.cff', 'SECURITY.md', 'CHANGELOG.md', 'publiccode.yml', '404.html',
@@ -66,6 +68,11 @@ def problems(root):
         out.append('C7 the page has more than one main heading in its markup')
     if UNCAPPED_GRID.search(page):
         out.append(f'C8 a grid minimum can force sideways scrolling: {UNCAPPED_GRID.search(page).group(0)}')
+    for f in sorted(p for p in root.rglob('*') if p.suffix in ('.yml', '.yaml', '.cff') and '.git' not in p.parts):
+        try:
+            yaml.safe_load(f.read_text(encoding='utf-8'))
+        except yaml.YAMLError as e:
+            out.append(f'C9 {f.relative_to(root)} does not parse: {str(e).splitlines()[0]}')
     return out
 
 
@@ -84,6 +91,7 @@ BREAKS = {
     'C6b': lambda r: _edit(r, 'index.html', lambda t: t.replace('/issues/new/choose">Contact', '/issues">Contact')),
     'C7': lambda r: _edit(r, 'index.html', lambda t: t.replace('<body', '<body><h1>a</h1><h1>b</h1>', 1)),
     'C8': lambda r: _edit(r, 'index.html', lambda t: t.replace('</style>', '.x{grid-template-columns:repeat(auto-fit,minmax(19rem,1fr))}</style>', 1)),
+    'C9': lambda r: _edit(r, '.github/ISSUE_TEMPLATE/contact.yml', lambda t: t.replace('description: "', 'description: x: "', 1)),
 }
 
 

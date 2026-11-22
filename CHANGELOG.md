@@ -2,7 +2,7 @@
 
 ## 22 November 2026: grid minimums capped
 
-- New check C8, found while publishing Young Person 360º: an auto-fit grid with an uncapped minimum can force
+- New checks C8 and C9 (every YAML and CFF file parses), found while publishing Young Person 360º: an auto-fit grid with an uncapped minimum can force
   sideways scrolling when text is enlarged. One rule here (`.forpro .stats-in`) was uncapped; the build now caps
   every such minimum at the container width.
 
