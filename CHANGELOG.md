@@ -1,5 +1,12 @@
 # Changelog
 
+## 22 November 2026: source fixes carried back into the artifact
+
+- The fixes that belong in the artifact too (contact by form, the Young Person 360º link, grid caps) were carried back
+  into it (now its version 1795362921-1cc3; self-assessment 100, axe clean in light and dark at 1280, 390 and 320).
+  `tools/publish.py` confirms them instead of reapplying them, and has a `--source` mode. The public page built from
+  the new export is byte-identical to the one it replaces.
+
 ## 22 November 2026: grid minimums capped
 
 - New checks C8 and C9 (every YAML and CFF file parses), found while publishing Young Person 360º: an auto-fit grid with an uncapped minimum can force

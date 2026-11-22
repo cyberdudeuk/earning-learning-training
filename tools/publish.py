@@ -8,9 +8,16 @@ The portal is edited as a private Claude artifact. This step makes the exported 
   3. feedback points to this repository's public contact form (contact is by form only: no email address);
   4. the one email address quoted from a public domain register is described rather than printed.
 
+Steps 3 and 4, the Young Person 360º link and the grid caps are source fixes: they belong in the artifact too, and
+were carried back into it on 22 November 2026. Each source fix is idempotent: applied if the export still needs it,
+confirmed if the export already has it, and an error if neither the old nor the new text is found. The page's own
+address, the QR code, the film and the build hub link are public-only.
+
 Every replacement is asserted, so a change in the export stops the build instead of publishing something half-done.
 
-Run:  python3 tools/publish.py path/to/artifact-export.html   writes index.html
+Run:  python3 tools/publish.py path/to/artifact-export.html             writes index.html
+      python3 tools/publish.py --source path/to/export.html out.html   writes the export with the source fixes only,
+                                                                       for republishing the artifact
 """
 import re
 import sys
@@ -22,9 +29,9 @@ ROOT = Path(__file__).resolve().parent.parent
 PUBLIC = 'https://cyberdudeuk.github.io/earning-learning-training/'
 REPO = 'https://github.com/cyberdudeuk/earning-learning-training'
 SELF = 'https://claude.ai/artifact/CX1xhHpatCfvWAf9nPnRe3'
-# Private artifact -> public address, or None for plain text.
+YP360 = ('https://claude.ai/artifact/D5Z5M9w61vdEdVQU1sP587', 'https://cyberdudeuk.github.io/young-person-360/')
+# Private artifact -> public address, or None for plain text (public-only: the artifact keeps these links).
 PRIVATE = {
-    'https://claude.ai/artifact/D5Z5M9w61vdEdVQU1sP587': 'https://cyberdudeuk.github.io/young-person-360/',
     'https://claude.ai/artifact/KtvH3k954KaATENz92AcdL': REPO + '#readme',
     'https://claude.ai/artifact/8qabj3EjNvkR42vgyk9bRf': None,
 }
@@ -47,7 +54,34 @@ def swap(text, old, new, at_least=1):
     return text.replace(old, new)
 
 
+def fix(text, old, new, at_least=1):
+    """A source fix: replace old with new where the export still has old; accept an export that already has new."""
+    held = text.replace(new, '\x00')  # new may contain old (an insertion); keep finished work out of the count
+    n_old, n_new = held.count(old), text.count(new)
+    if n_old + n_new < at_least or (n_old == 0 and n_new == 0):
+        raise SystemExit(f'publish: expected {old[:70]!r} or its fixed form in the export, found neither')
+    return held.replace(old, new).replace('\x00', new)
+
+
+def source_fixes(s):
+    """Fixes that belong in the artifact as well as the public page."""
+    # 2a. Young Person 360º is public now
+    s = fix(s, *YP360)
+    # 3. feedback through the public contact form
+    s = fix(s, '<p>Feedback on this portal: use the <b>Was this part useful?</b> form at the foot of any part. No email address is published.</p>',
+            f'<p>Feedback on this portal: use the <a href="{REPO}/issues/new/choose">contact form</a>. It is public, so leave out personal details. No email address is published.</p>', 1)
+    s = fix(s, "'<button type=\"button\" class=\"lnk\" id=\"ft-settings\">Display settings</button>', ",
+            f"'<a href=\"{REPO}/issues/new/choose\">Contact</a>', '<button type=\"button\" class=\"lnk\" id=\"ft-settings\">Display settings</button>', ", 1)
+    s = fix(s, 'If you leave feedback, it is sent to the owner.',
+            'Feedback goes through a public contact form on GitHub, so leave out personal details.', 1)
+    # 4. an address quoted from a public domain register
+    s = fix(s, 'Infrastructure.Operations@education.gov.uk; ', 'a Department for Education operations mailbox; ', 1)
+    # cap auto-fit grid minimums at the container width so large text cannot force sideways scrolling (check C8)
+    return UNCAPPED.sub(lambda m: f'{m.group(1)}minmax(min({m.group(2)},100%),1fr)', s)
+
+
 def transform(s):
+    s = source_fixes(s)
     # 1. the page's own address and its QR code
     m = re.search(r'(<svg[^>]*class="qr"[^>]*viewBox=")0 0 (\d+) \2("[^>]*>)(.*?)(<path d=")([^"]*)(")', s, re.DOTALL)
     if not m or SELF not in m.group(0):
@@ -64,17 +98,6 @@ def transform(s):
     s = swap(s, film, '"status": "private", "url": "", "what": "A short animated film about this portal, kept as a private artifact outside this repository.', 1)
     s = swap(s, "(av?'Available':'Placeholder')", "(av?'Available':(m.status===\"private\"?'Not published':'Placeholder'))", 1)
     s = swap(s, '"label": "the build and development hub"', '"label": "how this portal is built and run"', 1)
-    # 3. feedback through the public contact form
-    s = swap(s, '<p>Feedback on this portal: use the <b>Was this part useful?</b> form at the foot of any part. No email address is published.</p>',
-             f'<p>Feedback on this portal: use the <a href="{REPO}/issues/new/choose">contact form</a>. It is public, so leave out personal details. No email address is published.</p>', 1)
-    s = swap(s, "'<button type=\"button\" class=\"lnk\" id=\"ft-settings\">Display settings</button>', ",
-             f"'<a href=\"{REPO}/issues/new/choose\">Contact</a>', '<button type=\"button\" class=\"lnk\" id=\"ft-settings\">Display settings</button>', ", 1)
-    s = swap(s, 'If you leave feedback, it is sent to the owner.',
-             'Feedback goes through a public contact form on GitHub, so leave out personal details.', 1)
-    # 4. an address quoted from a public domain register
-    s = swap(s, 'Infrastructure.Operations@education.gov.uk; ', 'a Department for Education operations mailbox; ', 1)
-    # cap auto-fit grid minimums at the container width so large text cannot force sideways scrolling (check C8)
-    s = UNCAPPED.sub(lambda m: f'{m.group(1)}minmax(min({m.group(2)},100%),1fr)', s)
     left = sorted(set(PRIVATE_LINK.findall(s)))
     if left:
         raise SystemExit(f'publish: links to private artifacts remain: {left}')
@@ -82,6 +105,10 @@ def transform(s):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) == 4 and sys.argv[1] == '--source':
+        out = source_fixes(Path(sys.argv[2]).read_text(encoding='utf-8'))
+        Path(sys.argv[3]).write_text(out, encoding='utf-8')
+        raise SystemExit(f'wrote {sys.argv[3]} with the source fixes ({len(out):,} characters)')
     if len(sys.argv) != 2:
         raise SystemExit(__doc__)
     out = transform(Path(sys.argv[1]).read_text(encoding='utf-8'))
