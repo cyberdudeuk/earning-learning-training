@@ -28,6 +28,7 @@ PRIVATE = {
     'https://claude.ai/artifact/KtvH3k954KaATENz92AcdL': REPO + '#readme',
     'https://claude.ai/artifact/8qabj3EjNvkR42vgyk9bRf': None,
 }
+UNCAPPED = re.compile(r'(repeat\(auto-fi[lt],)minmax\((\d+(?:\.\d+)?rem),1fr\)')
 PRIVATE_LINK = re.compile(r'https://claude\.ai/(?:artifact|code/artifact|chat|project)/[A-Za-z0-9-]+')
 
 
@@ -72,6 +73,8 @@ def transform(s):
              'Feedback goes through a public contact form on GitHub, so leave out personal details.', 1)
     # 4. an address quoted from a public domain register
     s = swap(s, 'Infrastructure.Operations@education.gov.uk; ', 'a Department for Education operations mailbox; ', 1)
+    # cap auto-fit grid minimums at the container width so large text cannot force sideways scrolling (check C8)
+    s = UNCAPPED.sub(lambda m: f'{m.group(1)}minmax(min({m.group(2)},100%),1fr)', s)
     left = sorted(set(PRIVATE_LINK.findall(s)))
     if left:
         raise SystemExit(f'publish: links to private artifacts remain: {left}')
