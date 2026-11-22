@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: If you use this portal, please cite it as below.
+title: "Earning, learning and training: young people, work, learning and training across the UK"
+type: dataset
+authors:
+  - family-names: Silva
+    given-names: Emanuel
+    orcid: https://orcid.org/0009-0000-5880-7219
+repository-code: https://github.com/cyberdudeuk/earning-learning-training
+url: https://cyberdudeuk.github.io/earning-learning-training/
+abstract: >-
+  An evidence-led portal for young people aged 16 to 24 who are not in work, learning or training, and everyone
+  around them: the Milburn Review, every UK government strategy, programme, duty and target that bears on it, routes
+  into work, learning, training and self-employment, and the records that follow a young person, with every claim
+  traced to its source. A prototype, not an official government service.
+keywords: [NEET, young people, Milburn Review, employment, education, training, UK government]
+license: [MIT, OGL-UK-3.0]
+version: 33.0.0
+date-released: 2026-11-22

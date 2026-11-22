@@ -1,0 +1,28 @@
+publiccodeYmlVersion: "0.4"
+name: Earning, learning and training
+url: https://github.com/cyberdudeuk/earning-learning-training
+landingURL: https://cyberdudeuk.github.io/earning-learning-training/
+softwareVersion: 33.0.0
+releaseDate: "2026-11-22"
+platforms: [web]
+categories: [knowledge-management]
+developmentStatus: beta
+softwareType: standalone/web
+description:
+  en-GB:
+    shortDescription: Young people not in work, learning or training, and every UK response, each claim sourced. Prototype.
+    longDescription: >-
+      A single-page portal in 38 parts for young people aged 16 to 24, and the people helping them: a personal plan,
+      17 routes into work, learning, training and self-employment, the Milburn Review, the duties, programmes and
+      targets across the four nations, and the records that follow a young person. Every claim cites its source.
+      Independent work; not an official government service.
+    features: [Personal plan, Route finder, Four nations, Source register, Self-checking page]
+legal:
+  license: MIT AND OGL-UK-3.0
+maintenance:
+  type: internal
+  contacts:
+    - name: Emanuel Silva
+localisation:
+  localisationReady: false
+  availableLanguages: [en]
