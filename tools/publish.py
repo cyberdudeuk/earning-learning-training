@@ -54,6 +54,12 @@ def swap(text, old, new, at_least=1):
     return text.replace(old, new)
 
 
+def confirm(text, done):
+    """A source fix the artifact already carries: the build checks it is there and quotes nothing it replaced."""
+    if done not in text:
+        raise SystemExit(f'publish: expected {done[:70]!r} in the export; has the artifact lost a fix?')
+
+
 def fix(text, old, new, at_least=1):
     """A source fix: replace old with new where the export still has old; accept an export that already has new."""
     held = text.replace(new, '\x00')  # new may contain old (an insertion); keep finished work out of the count
@@ -75,7 +81,7 @@ def source_fixes(s):
     s = fix(s, 'If you leave feedback, it is sent to the owner.',
             'Feedback goes through a public contact form on GitHub, so leave out personal details.', 1)
     # 4. an address quoted from a public domain register
-    s = fix(s, 'Infrastructure.Operations@education.gov.uk; ', 'a Department for Education operations mailbox; ', 1)
+    confirm(s, 'a Department for Education operations mailbox; ')  # the artifact carries this; the old text is not quoted
     # cap auto-fit grid minimums at the container width so large text cannot force sideways scrolling (check C8)
     return UNCAPPED.sub(lambda m: f'{m.group(1)}minmax(min({m.group(2)},100%),1fr)', s)
 

@@ -3,9 +3,7 @@ message: If you use this portal, please cite it as below.
 title: "Earning, learning and training: young people, work, learning and training across the UK"
 type: dataset
 authors:
-  - family-names: Silva
-    given-names: Emanuel
-    orcid: https://orcid.org/0009-0000-5880-7219
+  - name: "Earning, learning and training contributors"
 repository-code: https://github.com/cyberdudeuk/earning-learning-training
 url: https://cyberdudeuk.github.io/earning-learning-training/
 abstract: >-
