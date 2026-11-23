@@ -41,7 +41,7 @@ plain text, and feedback goes to the [contact form](https://github.com/cyberdude
 Every replacement is asserted, so a change in the export stops the build rather than publishing something half-done.
 
 The page checks itself in your browser (a score out of 100 at the foot of the page), with no network access.
-`tools/check.py` runs 10 checks in CI, each proved by a deliberate break (`--negative`).
+`tools/check.py` runs 11 checks in CI, each proved by a deliberate break (`--negative`).
 
 The fixes that belong in the artifact too (contact by form, the Young Person 360º link, grid caps) are *source
 fixes*: they were carried back into the artifact on 22 November 2026, and the build confirms them rather than
@@ -50,7 +50,7 @@ artifact.
 
 ```
 python3 tools/publish.py path/to/export.html   # after editing the artifact
-python3 tools/check.py                          # 10 checks
+python3 tools/check.py                          # 11 checks
 python3 tools/check.py --negative               # prove each check fails when it should
 ```
 
